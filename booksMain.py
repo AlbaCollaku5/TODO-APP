@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 app = FastAPI()
 
 #Database connection
-DATABASE_URL = "sqlite:///./books.db"
+DATABASE_URL = "sqlite:///./data/books.db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = sqlalchemy.orm.declarative_base()
