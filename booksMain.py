@@ -27,10 +27,10 @@ class Book(Base):
     description = Column(String, index=True)
     rating = Column(Integer, index=True)
    
-    #create tables
+#create tables
 Base.metadata.create_all(bind=engine)
 
-    #Dependency to get the DB session
+#Dependency to get the DB session
 def get_db():
         db = SessionLocal()
         try:
