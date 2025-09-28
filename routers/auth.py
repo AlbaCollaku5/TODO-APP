@@ -31,7 +31,6 @@ class CreateUserRequest(BaseModel):
     last_name:str = Field(..., min_length=2, max_length=50)
     password:str = Field(..., min_length=6, max_length=100)
     role:str = Field(..., min_length=2, max_length=50)
- 
 
 class Token(BaseModel):
     access_token: str
@@ -55,9 +54,9 @@ def authenticate_user(username:str, password:str, db):
         return False
     return user
 
-def create_access_token(username: str, user_id: str, expires_delta: timedelta):
+def create_access_token(username: str, user_id: str, role: str, expires_delta: timedelta):
     #create encoding
-    encode = {'sub': username, 'id': user_id}
+    encode = {'sub': username, 'id': user_id, 'role': role}
     expires = datetime.datetime.now(timezone.utc) + expires_delta
     encode.update({'exp': expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -67,9 +66,11 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username:str = payload.get('sub')
         user_id:str = payload.get('id') #get user id from payload
+        role:str = payload.get('role') #get user role from payload
+         #check if username or user_id is None
         if username is None or user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate credentials')
-        return {'username': username, 'id': user_id}
+        return {'username': username, 'id': user_id, 'role': role}
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate credentials')
 
@@ -99,6 +100,6 @@ async def login_for_access_token(
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate credentials')
 
-    token = create_access_token(user.username, user.id, timedelta(minutes=20))
+    token = create_access_token(user.username, user.id, user.role, timedelta(minutes=20))
    
     return {'access_token': token, 'token_type': 'bearer'}
